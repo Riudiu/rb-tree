@@ -3,18 +3,26 @@
 #include <stdlib.h>
 
 rbtree *new_rbtree(void) {
-  rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
-  // TODO: initialize struct if needed
-  return p;
+  //RBTree 생성
+  rbtree *t = (rbtree *)calloc(1, sizeof(rbtree));
+
+  //트리에 nil 노드 초기화
+  node_t *nil = (node_t *)calloc(1, sizeof(node_t));
+  nil->color = RBTREE_BLACK;
+
+  //초기 생성시 트리의 root와 nil이 단일 nil을 가리키도록
+  t->root = t->nil = nil;
+  return t;
 }
 
 void delete_rbtree(rbtree *t) {
-  // TODO: reclaim the tree nodes's memory
+  //reclaim the tree nodes's memory
+  free(t->nil);
   free(t);
 }
 
 node_t *rbtree_insert(rbtree *t, const key_t key) {
-  // TODO: implement insert
+  
   return t->root;
 }
 
@@ -33,12 +41,14 @@ node_t *rbtree_max(const rbtree *t) {
   return t->root;
 }
 
+////////
+
 int rbtree_erase(rbtree *t, node_t *p) {
   // TODO: implement erase
   return 0;
 }
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
-  // TODO: implement to_array
+  // TODO: implement to_array 123
   return 0;
 }
