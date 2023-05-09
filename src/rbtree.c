@@ -38,16 +38,13 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
     }
   }
   z->parent = y;
-  if(y == t->nil) 
-  {
+  if(y == t->nil) {
     t->root = z;
   } 
-  else if (z->key < y->key)
-  {
+  else if (z->key < y->key) {
     y->left = z;
   }
-  else
-  {
+  else {
     y->right = z;
   }
   z->left = t->nil;
@@ -153,22 +150,46 @@ void rbtree_right_rotate(rbtree *t, node_t *x) {
   x->parent = y;
 }
 
+///찾는 키 값에 해당하는 노드 찾기
 node_t *rbtree_find(const rbtree *t, const key_t key) {
-  // TODO: implement find
-  return t->root;
+  node_t *root = t->root;
+  
+  //루트 노드가 nil노드가 같으면 종료 후 NULL 리턴
+  while(root != t->nil) {
+    //루트 노드의 키 값이 찾는 키값과 같다면 바로 리턴
+    if (key == root->key) return root;
+
+    //찾는 키 값이 루트 노드의 키 값보다 작다면 왼쪽 서브 트리로 이동
+    if (key < root->key) {
+      root = root->left;
+    } 
+    //찾는 키 값이 루트 노드의 키 값보다 크다면 오른쪽 서브 트리로 이동
+    if (key > root->key) {
+      root = root->right;
+    } 
+  }
+  return NULL;
 }
 
+///트리의 최솟값에 해당하는 노드 찾기
 node_t *rbtree_min(const rbtree *t) {
-  // TODO: implement find
-  return t->root;
+  node_t *root = t->root;
+  while (root->left != t->nil)
+  {
+    root = root->left;
+  }
+  return root;
 }
 
+///트리의 최댓값에 해당하는 노드 찾기
 node_t *rbtree_max(const rbtree *t) {
-  // TODO: implement find
-  return t->root;
+  node_t *root = t->root;
+  while (root->right != t->nil)
+  {
+    root = root->right;
+  }
+  return root;
 }
-
-////////
 
 int rbtree_erase(rbtree *t, node_t *p) {
   // TODO: implement erase
