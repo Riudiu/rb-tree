@@ -17,9 +17,17 @@ rbtree *new_rbtree(void) {
 
 ///RBTree 삭제
 void delete_rbtree(rbtree *t) {
-  //reclaim the tree nodes's memory
+  if(t->root != t->nil)
+    delete_node(t, t->root);
   free(t->nil);
   free(t);
+}
+void delete_node(rbtree *t, node_t *node) {
+  if (node->left != t->nil)
+    delete_node(t, node->left);
+  if (node->right != t->nil)
+    delete_node(t, node->right);
+  free(node);
 }
 
 ///노드 삽입
@@ -330,6 +338,16 @@ void rbtree_erase_fix(rbtree *t, node_t *x) {
 }
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
-  
+  int idx = 0;
+  in_order_traverse(t, arr, t->root, &idx);
   return 0;
+}
+
+void in_order_traverse(const rbtree *t, key_t *arr, node_t *node, int* idx) {
+  if (node->left != t->nil) 
+    in_order_traverse(t, arr, node->left, idx);
+  arr[*idx] = node->key;
+  (*idx)++;
+  if (node->right != t->nil) 
+    in_order_traverse(t, arr, node->right, idx);
 }
