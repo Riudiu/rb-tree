@@ -54,7 +54,8 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   rbtree_insert_fix(t, z);
   return z;
 }
-//노드 삽입 후 검사
+
+///노드 삽입 후 검사
 void rbtree_insert_fix(rbtree *t, node_t *z) {
   while (z->parent->color == RBTREE_RED) {
     if(z->parent == z->parent->parent->left) 
@@ -191,12 +192,144 @@ node_t *rbtree_max(const rbtree *t) {
   return root;
 }
 
-int rbtree_erase(rbtree *t, node_t *p) {
-  // TODO: implement erase
+///해당 노드의 successor 노드 찾기, root -> 타겟 노드의 오른쪽 자식
+node_t *rbtree_find_successor(const rbtree *t, node_t *root) {
+  while (root->left != t->nil)
+    root = root->left;
+  return root;
+}
+
+///노드 삭제시 삭제하려는 노드의 부모와 삭제하려는 노드의 자리를 대체할 노드를 서로 연결
+void rbtree_transplant(rbtree *t, node_t *target, node_t *replace) {
+  //삭제하려는 노드가 root일 경우 -> 대체 노드가 root 노드
+  if (target->parent == t->nil) {
+    t->root = replace;
+  }  
+  //삭제하려는 노드가 왼쪽 자식인지 오른쪽 자식인지 판단 후 
+  //삭제하려는 노드의 부모가 대체 노드를 가리키도록
+  else if(target == target->parent->left) {
+    target->parent->left = replace;
+  }
+  else {
+    target->parent->right = replace;
+  }
+  //대체 노드가 삭제하려는 노드의 부모를 가리키도록
+  replace->parent = target->parent;
+}
+
+///노드 삭제, target - 삭제할 노드
+int rbtree_erase(rbtree *t, node_t *target) {
+  color_t erased_color = target->color;  //삭제할 노드의 색
+  node_t *replace_child = t->nil;
+
+  ///삭제하려는 노드의 자식이 0개 또는 1개일 때 - 자식 노드가 이어받는다 
+  if (target->left == t->nil) {
+    //왼쪽 자식에 nil 노드가 있다면 오른쪽 자식을 대체 노드로, 자식이 없다면 nil 노드가 대체 노드로
+    replace_child = target->right;
+    rbtree_transplant(t, target, replace_child);
+  }
+  else if(target->right == t->nil) {
+    replace_child = target->left;
+    rbtree_transplant(t, target, replace_child);
+  }
+  ///삭제하려는 노드의 자식이 2개일 때
+  else {
+    //대체 노드를 successor 노드로
+    node_t *replace = rbtree_find_successor(t, target->right); 
+    erased_color = replace->color;  //삭제할 노드의 색을 successor의 색으로 변경
+    replace_child = replace->right;
+
+    ///대체하려는 노드가 오른쪽 자식 노드를 가질 경우를 대비해 대체 노드의 부모와 오른쪽 자식을 연결
+    rbtree_transplant(t, replace, replace_child);
+    //successor(target)을 대체 노드로 원래 삭제하려던 노드의 부모와 연결
+    rbtree_transplant(t, target, replace);
+
+    ///대체 노드와 삭제할 노드의 자식들을 연결
+    replace->left = target->left;
+    replace->right = target->right;
+    target->left->parent = replace;
+    target->right->parent = replace;
+
+    ///대체 노드는 기존 자신의 색깔을 버리고 삭제할 노드의 색을 이어받음
+    replace->color = target->color;
+  }
+  // 삭제되는 색이 BLACK이라면 extra black을 처리해줄 추가 작업
+  if (erased_color == RBTREE_BLACK) {
+    rbtree_erase_fix(t, replace_child);
+  }
+  //삭제할 노드 메모리 동적 할당 해제
+  free(target);
   return 0;
 }
 
+///노드 삭제 후 검사
+void rbtree_erase_fix(rbtree *t, node_t *x) {
+  while (x != t->root && x->color == RBTREE_BLACK) {
+    if(x == x->parent->left) 
+    {
+      node_t *w = x->parent->right;
+      //case 1
+      if(w->color == RBTREE_RED) {
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        rbtree_left_rotate(t, x->parent);
+        w = x->parent->right;
+      }
+      //case 2
+      if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) {
+        w->color = RBTREE_RED;
+        x = x->parent;
+      } else {
+        //case 3
+        if (w->right->color == RBTREE_BLACK) {
+          w->left->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          rbtree_right_rotate(t, w);
+          w = x->parent->right;
+        }
+        //case 4
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->right->color = RBTREE_BLACK;
+        rbtree_left_rotate(t, x->parent);
+        x = t->root;
+      }
+    } 
+    else 
+    {
+      node_t *w = x->parent->left;
+      //case 1
+      if(w->color == RBTREE_RED) {
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        rbtree_right_rotate(t, x->parent);
+        w = x->parent->left;
+      }
+      //case 2
+      if (w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK) {
+        w->color = RBTREE_RED;
+        x = x->parent;
+      } else {
+        //case 3
+        if (w->left->color == RBTREE_BLACK) {
+          w->right->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          rbtree_left_rotate(t, w);
+          w = x->parent->left;
+        }
+        //case 4
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->left->color = RBTREE_BLACK;
+        rbtree_right_rotate(t, x->parent);
+        x = t->root;
+      }
+    }
+  }
+  x->color = RBTREE_BLACK;  
+}
+
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
-  // TODO: implement to_array 123
+  
   return 0;
 }
