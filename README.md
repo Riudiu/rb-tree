@@ -37,3 +37,11 @@
 ([영어](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree))
 - [Wikipedia:균형 이진 트리의 구현 방법들](https://en.wikipedia.org/wiki/Self-balancing_binary_search_tree#Implementations)
 - CLRS book (Introduction to Algorithms) 13장 레드 블랙 트리 - Sentinel node를 사용한 구현
+
+## 개발환경 설치
+```shell
+$ sudo apt update                         # package list update
+$ sudo apt upgrade                        # upgrade packages
+$ sudo apt install gcc make valgrind gdb  # gcc, make 등 개발 환경 설치
+$ sudo apt install gcc-multilib           # 32-bit lib
+```
