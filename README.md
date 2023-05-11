@@ -1,10 +1,6 @@
 # Red-Black Tree 구현
 
-Balanced search tree로 많이 쓰이는 Red-black tree (이하 RB tree)를 C 언어로 구현하는 과제입니다.
-구현하는 추상 자료형 (ADT: abstract data type)은 ordered set, multiset 입니다.
-
 ## 구현 범위
-다음 기능들을 수행할 수 있도록 RB tree를 구현합니다.
 
 - tree = `new_tree()`: RB tree 구조체 생성
   - 여러 개의 tree를 생성할 수 있어야 하며 각각 다른 내용들을 저장할 수 있어야 합니다.
@@ -30,9 +26,8 @@ Balanced search tree로 많이 쓰이는 Red-black tree (이하 RB tree)를 C �
 - `make test`를 수행하여 `Passed All tests!`라는 메시지가 나오면 모든 test를 통과한 것입니다.
 - Sentinel node를 사용하여 구현했다면 `test/Makefile`에서 `CFLAGS` 변수에 `-DSENTINEL`이 추가되도록 comment를 제거해 줍니다.
 
-## 과제의 의도 (Motivation)
+## 의도 (Motivation)
 
-- 복잡한 자료구조(data structure)를 구현해 봄으로써 자신감 상승
 - C 언어, 특히 포인터(pointer)와 malloc, free 등의 system call에 익숙해짐.
 - 동적 메모리 할당(dynamic memory allocation)을 직접 사용해 봄으로써 동적 메모리 할당의 필요성 체감 및 data segment에 대한 이해도 상승
 - 고급 언어에서 기본으로 제공되는 자료구조가 세부적으로는 어떻게 구현되어 있는지 경험함으로써 고급 언어 사용시에도 효율성 고려
@@ -40,5 +35,5 @@ Balanced search tree로 많이 쓰이는 Red-black tree (이하 RB tree)를 C �
 ## 참고문헌
 - [위키백과: 레드-블랙 트리](https://ko.wikipedia.org/wiki/%EB%A0%88%EB%93%9C-%EB%B8%94%EB%9E%99_%ED%8A%B8%EB%A6%AC)
 ([영어](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree))
-- CLRS book (Introduction to Algorithms) 13장 레드 블랙 트리 - Sentinel node를 사용한 구현
 - [Wikipedia:균형 이진 트리의 구현 방법들](https://en.wikipedia.org/wiki/Self-balancing_binary_search_tree#Implementations)
+- CLRS book (Introduction to Algorithms) 13장 레드 블랙 트리 - Sentinel node를 사용한 구현
