@@ -172,9 +172,7 @@ void rbtree_right_rotate(rbtree *t, node_t *node) {
 ///찾는 키 값에 해당하는 노드 찾기
 node_t *rbtree_find(const rbtree *t, const key_t key) {
   node_t *root = t->root;
-  
-  //루트 노드가 nil노드가 같으면 종료 후 NULL 리턴
-  while(root != t->nil) {
+  while (root != t->nil) {
     //루트 노드의 키 값이 찾는 키값과 같다면 바로 리턴
     if (key == root->key) return root;
 
@@ -217,14 +215,12 @@ node_t *rbtree_find_successor(const rbtree *t, node_t *root) {
   return root;
 }
 
-///노드 삭제시 삭제하려는 노드의 부모와 삭제하려는 노드의 자리를 대체할 노드를 서로 연결
+///노드 삭제시 삭제하려는 노드의 부모(target->parent)와 대체할 노드(replace)를 서로 연결
 void rbtree_transplant(rbtree *t, node_t *target, node_t *replace) {
-  //삭제하려는 노드가 root일 경우 -> 대체 노드가 root 노드
   if (target->parent == t->nil) {
     t->root = replace;
   }  
-  //삭제하려는 노드가 왼쪽 자식인지 오른쪽 자식인지 판단 후 
-  //삭제하려는 노드의 부모가 대체 노드를 가리키도록
+  //삭제하려는 노드가 왼쪽 자식인지 오른쪽 자식인지 판단
   else if(target == target->parent->left) {
     target->parent->left = replace;
   }
@@ -238,31 +234,32 @@ void rbtree_transplant(rbtree *t, node_t *target, node_t *replace) {
 ///노드 삭제, target - 삭제할 노드
 int rbtree_erase(rbtree *t, node_t *target) {
   color_t erased_color = target->color;  //삭제할 노드의 색
+  node_t *replace = t->nil;  //대체 노드
   node_t *replace_child = t->nil;
 
   ///삭제하려는 노드의 자식이 0개 또는 1개일 때 - 자식 노드가 이어받는다 
+  ///양쪽 모두 자식이 없다면 nil 노드가 대체한다
   if (target->left == t->nil) {
-    //왼쪽 자식에 nil 노드가 있다면 오른쪽 자식을 대체 노드로, 자식이 없다면 nil 노드가 대체 노드로
-    replace_child = target->right;
-    rbtree_transplant(t, target, replace_child);
+    replace = target->right;
+    rbtree_transplant(t, target, replace);
   }
   else if(target->right == t->nil) {
-    replace_child = target->left;
-    rbtree_transplant(t, target, replace_child);
+    replace = target->left;
+    rbtree_transplant(t, target, replace);
   }
-  ///삭제하려는 노드의 자식이 2개일 때
+  //삭제하려는 노드의 자식이 2개일 때
   else {
     //대체 노드를 successor 노드로
-    node_t *replace = rbtree_find_successor(t, target->right); 
+    replace = rbtree_find_successor(t, target->right); 
     erased_color = replace->color;  //삭제할 노드의 색을 successor의 색으로 변경
-    replace_child = replace->right;
+    replace_child = replace->right;  //successor 노드의 자식을 캐싱
 
-    ///대체하려는 노드가 오른쪽 자식 노드를 가질 경우를 대비해 대체 노드의 부모와 오른쪽 자식을 연결
+    ///대체 노드의 부모와 그 오른쪽 자식을 연결
     rbtree_transplant(t, replace, replace_child);
-    //successor(target)을 대체 노드로 원래 삭제하려던 노드의 부모와 연결
+    //target의 부모와 대체 노드를 연결
     rbtree_transplant(t, target, replace);
 
-    ///대체 노드와 삭제할 노드의 자식들을 연결
+    ///대체 노드와 target의 자식들을 연결
     replace->left = target->left;
     replace->right = target->right;
     target->left->parent = replace;
