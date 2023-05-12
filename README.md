@@ -1,5 +1,9 @@
 # Red-Black Tree 구현
 
+### 관련 포스팅
+
+- [[자료구조] 레드 블랙 트리 (Red-Black Tree)](https://riudiu.tistory.com/58)
+
 ## 구현 범위
 
 - tree = `new_tree()`: RB tree 구조체 생성
