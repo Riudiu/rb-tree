@@ -1,5 +1,4 @@
 #include "rbtree.h"
-
 #include <stdlib.h>
 
 ///RBTree 생성
@@ -17,12 +16,13 @@ rbtree *new_rbtree(void) {
 
 ///RBTree 삭제
 void delete_rbtree(rbtree *t) {
-  if(t->root != t->nil)
+  if (t->root != t->nil)
     delete_node(t, t->root);
   free(t->nil);
   free(t);
 }
 void delete_node(rbtree *t, node_t *node) {
+  //nil 노드에 도달할 때까지 재귀로 타고 내려가서 노드 삭제
   if (node->left != t->nil)
     delete_node(t, node->left);
   if (node->right != t->nil)
@@ -32,131 +32,141 @@ void delete_node(rbtree *t, node_t *node) {
 
 ///노드 삽입
 node_t *rbtree_insert(rbtree *t, const key_t key) {
-  node_t *y = t->nil;
-  node_t *x = t->root;
-  node_t *z = (node_t *)calloc(1, sizeof(node_t));
-  z->key = key;
+  node_t *p = t->nil;
+  node_t *current = t->root;
+  //입력 받은 key를 가지는 노드 생성
+  node_t *node = (node_t *)calloc(1, sizeof(node_t));
+  node->key = key;
 
-  while(x != t->nil) {
-    y = x;
-    if (z->key < x->key) {
-      x = x->left;
+  ///위에서부터 key 값이 들어갈 위치 탐색
+  while (current != t->nil) {
+    //들어갈 위치를 찾았을 때 해당 위치의 부모를 알기 위해 캐싱 
+    p = current;  
+    if (node->key < current->key) {
+      current = current->left;
     } else {
-      x = x->right;
+      current = current->right;
     }
   }
-  z->parent = y;
-  if(y == t->nil) {
-    t->root = z;
-  } 
-  else if (z->key < y->key) {
-    y->left = z;
-  }
-  else {
-    y->right = z;
-  }
-  z->left = t->nil;
-  z->right = t->nil;
-  z->color = RBTREE_RED;
+  //새 node가 들어갈 위치의 부모와 연결
+  node->parent = p;
+  if (p == t->nil) 
+    t->root = node;
+  else if (node->key < p->key) 
+    p->left = node;
+  else 
+    p->right = node;
 
-  rbtree_insert_fix(t, z);
-  return z;
+  node->left = t->nil;
+  node->right = t->nil;
+  node->color = RBTREE_RED;  //삽입되는 node는 항상 RED
+
+  rbtree_insert_fix(t, node);
+  return node;
 }
 
 ///노드 삽입 후 검사
-void rbtree_insert_fix(rbtree *t, node_t *z) {
-  while (z->parent->color == RBTREE_RED) {
-    if(z->parent == z->parent->parent->left) 
+void rbtree_insert_fix(rbtree *t, node_t *node) {
+  ///삽입한 노드의 부모가 red일 경우 -> #4 속성을 위반
+  while (node->parent->color == RBTREE_RED) {
+    //할아버지 기준 왼쪽에 있을 때
+    if (node->parent == node->parent->parent->left) 
     {
-      node_t *y = z->parent->parent->right;
-      //case 1
-      if (y->color == RBTREE_RED)
+      //case 1 - 부모의 형제 노드가 red일 경우
+      if (node->parent->parent->right->color == RBTREE_RED)
       {
-        z->parent->color = RBTREE_BLACK;
-        y->color = RBTREE_BLACK;
-        z->parent->parent->color = RBTREE_RED;
-        z = z->parent->parent;
+        //부모와 부모형제(=삼촌)의 RED를 한데모아 할아버지에게 전달
+        node->parent->color = RBTREE_BLACK;
+        node->parent->parent->right->color = RBTREE_BLACK;
+        node->parent->parent->color = RBTREE_RED;
+        //할아버지가 새로운 RED가 되었으니 #4를 위반하는지 다시 검사
+        node = node->parent->parent;
       }
       else
       {
-        //case 2
-        if(z == z->parent->right){
-          z = z->parent;
-          rbtree_left_rotate(t, z);
+        //case 2 - 부모의 형제 노드가 black이며 꺾인 형태일 경우
+        //부모를 기준으로 회전하여 뻗은 형태로 바꿔주기 
+        if (node == node->parent->right) {
+          node = node->parent;
+          rbtree_left_rotate(t, node);
         }
-        //case 3
-        z->parent->color = RBTREE_BLACK;
-        z->parent->parent->color = RBTREE_RED;
-        rbtree_right_rotate(t, z->parent->parent);
+        //case 3 - 부모의 형제 노드가 black이며 뻗은 형태일 경우
+        //부모와 할아버지의 색을 바꾸고 회전
+        node->parent->color = RBTREE_BLACK;
+        node->parent->parent->color = RBTREE_RED;
+        rbtree_right_rotate(t, node->parent->parent);
       }
     }
+    //할아버지 기준 오른쪽에 있을 때
     else 
     {
-      node_t *y = z->parent->parent->left;
       //case 1
-      if (y->color == RBTREE_RED)
+      if (node->parent->parent->left->color == RBTREE_RED)
       {
-        z->parent->color = RBTREE_BLACK;
-        y->color = RBTREE_BLACK;
-        z->parent->parent->color = RBTREE_RED;
-        z = z->parent->parent;
+        node->parent->color = RBTREE_BLACK;
+        node->parent->parent->left->color = RBTREE_BLACK;
+        node->parent->parent->color = RBTREE_RED;
+        node = node->parent->parent;
       }
       else
       {
         //case 2
-        if(z == z->parent->left){
-          z = z->parent;
-          rbtree_right_rotate(t, z);
+        if (node == node->parent->left) {
+          node = node->parent;
+          rbtree_right_rotate(t, node);
         }
         //case 3
-        z->parent->color = RBTREE_BLACK;
-        z->parent->parent->color = RBTREE_RED;
-        rbtree_left_rotate(t, z->parent->parent);
+        node->parent->color = RBTREE_BLACK;
+        node->parent->parent->color = RBTREE_RED;
+        rbtree_left_rotate(t, node->parent->parent);
       }
     }
   }
+  //#2 속성을 위반하는 경우 -> root의 색 black으로 변경
   t->root->color = RBTREE_BLACK;
 }
 
 ///좌측 회전
-void rbtree_left_rotate(rbtree *t, node_t *x) {
-  node_t *y = x->right;
-  x->right = y->left;
-  if (y->left != t->nil) { 
-    y->left->parent = x;
-  }
-  y->parent = x->parent;
-  if (x->parent == t->nil) {
-    t->root = y;
-  }
-  else if (x == x->parent->left) {
-    x->parent->left = y;
-  } 
-  else {  
-    x->parent->right = y;
-  }
-  y->left = x;
-  x->parent = y;
+void rbtree_left_rotate(rbtree *t, node_t *node) {
+  node_t *new_p = node->right;
+
+  //위로 올라갈 노드의 왼쪽 자식이 있을 경우
+  if (new_p->left != t->nil) 
+    new_p->left->parent = node;
+  
+  //new_p와 node->parent 상호 연결
+  new_p->parent = node->parent;
+  if (node->parent == t->nil) 
+    t->root = new_p;
+  else if (node == node->parent->left) 
+    node->parent->left = new_p;
+  else
+    node->parent->right = new_p;
+
+  //위로 올라간 new_p와 왼쪽 아래로 이동한 node 상호연결
+  new_p->left = node;
+  node->parent = new_p;
 }
 //우측 회전
-void rbtree_right_rotate(rbtree *t, node_t *x) {
-  node_t *y = x->left;
-  x->left = y->right;
-  if (y->right != t->nil) { 
-    y->right->parent = x;
-  }
-  y->parent = x->parent;
-  if (x->parent == t->nil) {
-    t->root = y;
-  }
-  else if (x == x->parent->right) {
-    x->parent->right = y;
-  } 
-  else {  
-    x->parent->left = y;
-  }
-  y->right = x;
-  x->parent = y;
+void rbtree_right_rotate(rbtree *t, node_t *node) {
+  node_t *new_p = node->left;
+  
+  //위로 올라갈 노드의 오른쪽 자식이 있을 경우
+  if (new_p->right != t->nil)
+    new_p->right->parent = node;
+  
+  //new_p와 node->parent 상호 연결
+  new_p->parent = node->parent;
+  if (node->parent == t->nil)
+    t->root = new_p;
+  else if (node == node->parent->right) 
+    node->parent->right = new_p;
+  else 
+    node->parent->left = new_p;
+
+  //위로 올라간 new_p와 오른쪽 아래로 이동한 node 상호연결
+  new_p->right = node;
+  node->parent = new_p;
 }
 
 ///찾는 키 값에 해당하는 노드 찾기
